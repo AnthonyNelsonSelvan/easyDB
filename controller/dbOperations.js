@@ -94,7 +94,8 @@ async function handleSchemaCreation(req, res) {
         await db.command({
             collMod: collectionName,
             validator: validator,
-            validationLevel: "strict"
+            validationLevel: "strict",
+            validationAction: "error"
         });
 
 

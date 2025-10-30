@@ -1,10 +1,16 @@
 import express from "express";
 import cookieParser from "cookie-parser";
 
+//db connections
 import handleConnectoMainServer from "./connections/mongo.js";
 import { connectToMongo, getMongoClient } from "./database.js";
+
+//routers
 import UserRouter from "./routes/user.js";
 import DBOperationRouter from "./routes/operations.js";
+import CreateRouter from "./routes/create.js"
+
+//middleware
 import handleCheckIfLoggedIn from "./middleware/auth.js";
 
 const app = express();
@@ -28,6 +34,7 @@ app.use((req, res, next) => {
 
 app.use("/api/user", UserRouter);
 app.use("/api/db", DBOperationRouter);
+app.use("/api/create", CreateRouter);
 
 
 app.get("/", (req, res) => {
