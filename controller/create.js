@@ -20,18 +20,16 @@ async function createOneRecord(req, res) {
         if (!dbValid) {
             return res.status(404).json({ message: "There is no such DB name" });
         }
-        const colValid = await Col.findOne({ collectionName: collectionName });
-        if (!colValid) {
+        const colWithSchema = await Col.findOne({ collectionName: collectionName, dbId: dbValid._id }).populate('schemaDefinitionId');;
+        if (!colWithSchema) {
             return res.status(404).json({ message: "There is no such Collection in your db" });
         }
-        if (colValid.dbId.toString() !== dbValid._id.toString()) {
+        if (colWithSchema.dbId.toString() !== dbValid._id.toString()) {
             return res.status(403).json({ message: "Collection does not belong to this database" });
         }
         //till here (caching) will apply soon
 
-        //schema should be cached (caching)
-        const schema = await Col.findOne({ collectionName: collectionName }).populate('schemaDefinitionId');
-        const finalDoc = await hashFields(document, schema)//does hashing if schema had hash true
+        const finalDoc = await hashFields(document, colWithSchema)//does hashing if schema had hash true
 
         const db = req.mongoClient.db(dbName);
         const collection = db.collection(collectionName);
@@ -78,22 +76,21 @@ async function createManyRecords(req, res) {
         if (!dbValid) {
             return res.status(404).json({ message: "There is no such DB name" });
         }
-        const colValid = await Col.findOne({ collectionName: collectionName });
-        if (!colValid) {
+         const colWithSchema = await Col.findOne({ collectionName: collectionName, dbId: dbValid._id }).populate('schemaDefinitionId');;
+        if (!colWithSchema) {
             return res.status(404).json({ message: "There is no such Collection in your db" });
         }
-        if (colValid.dbId.toString() !== dbValid._id.toString()) {
+        if (colWithSchema.dbId.toString() !== dbValid._id.toString()) {
             return res.status(403).json({ message: "Collection does not belong to this database" });
         }
         //till here (caching) will apply soon (same in every place)
 
         //cache the schema
-        const schema = await Col.findOne({ collectionName: collectionName }).populate('schemaDefinitionId');
-        const finalDoc = await hashFieldsForMany(documents, schema);
+        const finalDoc = await hashFieldsForMany(documents, colWithSchema);
 
         const db = req.mongoClient.db(dbName);
         const collection = db.collection(collectionName);
-        const result = await collection.insertMany(documents, insertOptions);
+        const result = await collection.insertMany(finalDoc, insertOptions);
 
         res.status(201).json({
             acknowledged: result.acknowledged,

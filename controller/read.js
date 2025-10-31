@@ -19,11 +19,11 @@ async function readOneRecord(req, res) {
         if (!dbValid) {
             return res.status(404).json({ message: "There is no such DB name" });
         }
-        const colValid = await Col.findOne({ collectionName: collectionName });
-        if (!colValid) {
+        const colWithSchema = await Col.findOne({ collectionName: collectionName, dbId: dbValid._id }).populate('schemaDefinitionId');;
+        if (!colWithSchema) {
             return res.status(404).json({ message: "There is no such Collection in your db" });
         }
-        if (colValid.dbId.toString() !== dbValid._id.toString()) {
+        if (colWithSchema.dbId.toString() !== dbValid._id.toString()) {
             return res.status(403).json({ message: "Collection does not belong to this database" });
         }
         //till here (caching) will apply soon
@@ -65,11 +65,11 @@ async function readManyRecord(req, res) {
         if (!dbValid) {
             return res.status(404).json({ message: "There is no such DB name" });
         }
-        const colValid = await Col.findOne({ collectionName: collectionName });
-        if (!colValid) {
+        const colWithSchema = await Col.findOne({ collectionName: collectionName, dbId: dbValid._id }).populate('schemaDefinitionId');;
+        if (!colWithSchema) {
             return res.status(404).json({ message: "There is no such Collection in your db" });
         }
-        if (colValid.dbId.toString() !== dbValid._id.toString()) {
+        if (colWithSchema.dbId.toString() !== dbValid._id.toString()) {
             return res.status(403).json({ message: "Collection does not belong to this database" });
         }
         //till here (caching) will apply soon
