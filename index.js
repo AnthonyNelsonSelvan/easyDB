@@ -8,7 +8,8 @@ import { connectToMongo, getMongoClient } from "./database.js";
 //routers
 import UserRouter from "./routes/user.js";
 import DBOperationRouter from "./routes/operations.js";
-import CreateRouter from "./routes/create.js"
+import CreateRouter from "./routes/create.js";
+import ReadRouter from "./routes/read.js";
 
 //middleware
 import handleCheckIfLoggedIn from "./middleware/auth.js";
@@ -34,6 +35,7 @@ app.use((req, res, next) => {
 app.use("/api/user", UserRouter);
 app.use("/api/db", DBOperationRouter);
 app.use("/api/create", CreateRouter);
+app.use("/api/read", ReadRouter);
 
 
 app.get("/", (req, res) => {

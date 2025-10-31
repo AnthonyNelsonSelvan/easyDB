@@ -1,14 +1,13 @@
-import { hashFields, hashFieldsForMany } from "../auth/hash.js";
 import Col from "../model/collection.js";
 import DB from "../model/db.js";
 
-async function createOneRecord(req, res) {
+async function readOneRecord(req, res) {
     try {
         const dbName = `${req.params.dbName}_${req.user.id}`;
         const collectionName = req.params.collectionName;
-        const document = req.body;
+        const query = req.body;
 
-        if (typeof document !== 'object' || document === null) {
+        if (typeof query !== 'object' || query === null) {
             return res.status(400).json({ message: "Request body must be a valid document object." });
         }
         if (!req.mongoClient) throw new Error("Database client not found in request");
@@ -29,44 +28,32 @@ async function createOneRecord(req, res) {
         }
         //till here (caching) will apply soon
 
-        //schema should be cached (caching)
-        const schema = await Col.findOne({ collectionName: collectionName }).populate('schemaDefinitionId');
-        const finalDoc = await hashFields(document, schema)//does hashing if schema had hash true
-
         const db = req.mongoClient.db(dbName);
         const collection = db.collection(collectionName);
-        const result = await collection.insertOne(finalDoc);
+        const result = await collection.findOne(query);
 
-        res.status(201).json({
-            acknowledged: result.acknowledged,
-            insertedId: result.insertedId
+        if (!result) {
+            return res.status(404).json({ message: "No document found matching query" });
+        }
+
+        res.status(200).json({
+            message: "Document fetched successfully",
+            data: result
         });
     } catch (error) {
-        if (error.code === 11000) {
-            return res.status(409).json({ message: "Duplicate key error: this data already exists." });
-        }
-
-        if (error.code === 121) {
-            return res.status(400).json({ message: "Document failed validation: missing or invalid fields." });
-        }
-        console.error("API Error inserting document:", error);
-        res.status(500).json({ message: "Failed to insert document", error: error.message });
+        console.log("Read one record Error :", error);
+        res.status(500).json({ message: "Internal server error", error: error.message });
     }
 }
 
-async function createManyRecords(req, res) {
+async function readManyRecord(req, res) {
     try {
         const dbName = `${req.params.dbName}_${req.user.id}`;
         const collectionName = req.params.collectionName;
+        const query = req.body.query || {};
+        const options = req.body.options || {};
 
-        const documents = req.body.documents;
-        const insertOptions = req.body.options || {};
-
-        if (!Array.isArray(documents)) {
-            return res.status(400).json({ message: "Request body must contain a 'documents' Array" });
-        }
-
-        if (typeof documents !== 'object' || documents === null) {
+        if (typeof query !== 'object' || query === null) {
             return res.status(400).json({ message: "Request body must be a valid document object." });
         }
         if (!req.mongoClient) throw new Error("Database client not found in request");
@@ -85,32 +72,24 @@ async function createManyRecords(req, res) {
         if (colValid.dbId.toString() !== dbValid._id.toString()) {
             return res.status(403).json({ message: "Collection does not belong to this database" });
         }
-        //till here (caching) will apply soon (same in every place)
-
-        //cache the schema
-        const schema = await Col.findOne({ collectionName: collectionName }).populate('schemaDefinitionId');
-        const finalDoc = await hashFieldsForMany(documents, schema);
+        //till here (caching) will apply soon
 
         const db = req.mongoClient.db(dbName);
         const collection = db.collection(collectionName);
-        const result = await collection.insertMany(documents, insertOptions);
+        const result = await collection.find(query,options).toArray();
 
-        res.status(201).json({
-            acknowledged: result.acknowledged,
-            insertedCount: result.insertedCount,
-            insertedIds: result.insertedIds
+        if (result.length === 0) {
+            return res.status(404).json({ message: "No document found matching query" });
+        }
+
+        res.status(200).json({
+            message: "Documents fetched successfully",
+            data: result
         });
     } catch (error) {
-        if (error.code === 11000) {
-            return res.status(409).json({ message: "Duplicate key error: this data already exists." });
-        }
-
-        if (error.code === 121) {
-            return res.status(400).json({ message: "Document failed validation: missing or invalid fields." });
-        }
-        console.error("API Error inserting multiple documents:", error);
-        res.status(500).json({ message: "Failed to insert documents", error: error.message });
+        console.log("Read one record Error :", error);
+        res.status(500).json({ message: "Internal server error", error: error.message });
     }
-};
+}
 
-export { createOneRecord, createManyRecords }
+export {readOneRecord,readManyRecord};
