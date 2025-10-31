@@ -24,7 +24,6 @@ app.use(handleCheckIfLoggedIn);
 app.use((req, res, next) => {
     try {
         req.mongoClient = getMongoClient();
-        console.log(req.mongoClient);
         next();
     } catch (error) {
         console.error("Middleware DB Client Error:", error.message);
