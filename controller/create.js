@@ -16,13 +16,16 @@ async function createOneRecord(req, res) {
         if (!collectionName) return res.status(400).json({ message: "collectionName parameter required" });
 
         //needs caching right here
-        const dbValid = DB.findOne({dbName : dbName})
-        if(!dbValid){
-            return res.status(404).json({message : "There is no such DB name"});
+        const dbValid = await DB.findOne({ dbName: dbName })
+        if (!dbValid) {
+            return res.status(404).json({ message: "There is no such DB name" });
         }
-        const colValid = Col.findOne({collectionName : collectionName});
-        if(!colValid){
-            return res.status(404).json({message : "There is no such Collection in your db"});
+        const colValid = await Col.findOne({ collectionName: collectionName });
+        if (!colValid) {
+            return res.status(404).json({ message: "There is no such Collection in your db" });
+        }
+        if (colValid.dbId.toString() !== dbValid._id.toString()) {
+            return res.status(403).json({ message: "Collection does not belong to this database" });
         }
         //till here (caching) will apply soon
 
@@ -38,6 +41,13 @@ async function createOneRecord(req, res) {
             insertedId: result.insertedId
         });
     } catch (error) {
+        if (error.code === 11000) {
+            return res.status(409).json({ message: "Duplicate key error: this data already exists." });
+        }
+
+        if (error.code === 121) {
+            return res.status(400).json({ message: "Document failed validation: missing or invalid fields." });
+        }
         console.error("API Error inserting document:", error);
         res.status(500).json({ message: "Failed to insert document", error: error.message });
     }
