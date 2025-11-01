@@ -1,6 +1,5 @@
 import { hashFieldOnUpdate } from "../auth/hash.js";
-import Col from "../model/collection.js";
-import DB from "../model/db.js";
+import validateDbandCol from "../utils/validateQuery.js";
 
 async function updateOne(req, res) {
     try {
@@ -26,20 +25,13 @@ async function updateOne(req, res) {
         if (!collectionName) return res.status(400).json({ message: "collectionName parameter required" });
 
         //needs caching right here
-        const dbValid = await DB.findOne({ dbName: dbName })
-        if (!dbValid) {
-            return res.status(404).json({ message: "There is no such DB name" });
-        }
-        const colWithSchema = await Col.findOne({ collectionName: collectionName, dbId: dbValid._id }).populate('schemaDefinitionId');;
-        if (!colWithSchema) {
-            return res.status(404).json({ message: "There is no such Collection in your db" });
-        }
-        if (colWithSchema.dbId.toString() !== dbValid._id.toString()) {
-            return res.status(403).json({ message: "Collection does not belong to this database" });
+        const colWithSchema = await validateDbandCol(dbName,collectionName);
+        if(!colWithSchema.valid){
+            return res.status(404).json({message : colWithSchema.message})
         }
         //till here (caching) will apply soon
 
-        const finalUpdate = await hashFieldOnUpdate(update, colWithSchema);
+        const finalUpdate = await hashFieldOnUpdate(update, colWithSchema.schema);
 
         const db = req.mongoClient.db(dbName);
         const collection = db.collection(collectionName);
@@ -91,20 +83,13 @@ async function updateMany(req, res) {
         if (!collectionName) return res.status(400).json({ message: "collectionName parameter required" });
 
         //needs caching right here
-        const dbValid = await DB.findOne({ dbName: dbName })
-        if (!dbValid) {
-            return res.status(404).json({ message: "There is no such DB name" });
-        }
-        const colWithSchema = await Col.findOne({ collectionName: collectionName, dbId: dbValid._id }).populate('schemaDefinitionId');;
-        if (!colWithSchema) {
-            return res.status(404).json({ message: "There is no such Collection in your db" });
-        }
-        if (colWithSchema.dbId.toString() !== dbValid._id.toString()) {
-            return res.status(403).json({ message: "Collection does not belong to this database" });
+        const colWithSchema = await validateDbandCol(dbName,collectionName);
+        if(!colWithSchema.valid){
+            return res.status(404).json({message : colWithSchema.message})
         }
         //till here (caching) will apply soon
 
-        const finalUpdate = await hashFieldOnUpdate(update, colWithSchema);
+        const finalUpdate = await hashFieldOnUpdate(update, colWithSchema.schema);
 
         const db = req.mongoClient.db(dbName);
         const collection = db.collection(collectionName);
