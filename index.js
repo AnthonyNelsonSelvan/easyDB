@@ -3,7 +3,11 @@ import cookieParser from "cookie-parser";
 
 //db connections
 import handleConnectoMainServer from "./connections/mongo.js";
-import { connectToMongo, getMongoClient } from "./database.js";
+import { connectToMongo } from "./database.js";
+
+//middleware
+import handleCheckIfLoggedIn from "./middleware/auth.js";
+import getClusterClient from "./middleware/getClient.js";
 
 //routers
 import UserRouter from "./routes/user.js";
@@ -13,9 +17,6 @@ import ReadRouter from "./routes/read.js";
 import UpdateRouter from "./routes/update.js";
 import DeleteRouter from "./routes/delete.js";
 
-//middleware
-import handleCheckIfLoggedIn from "./middleware/auth.js";
-
 const app = express();
 const MONGO_URL = 'mongodb://localhost:27018/data-main';//main server url
 
@@ -24,15 +25,7 @@ app.use(express.json());
 app.use(cookieParser());
 
 app.use(handleCheckIfLoggedIn);
-app.use((req, res, next) => {
-    try {
-        req.mongoClient = getMongoClient();
-        next();
-    } catch (error) {
-        console.error("Middleware DB Client Error:", error.message);
-        res.status(503).json({ message: "Database service unavailable" });
-    }
-});
+app.use(getClusterClient);
 
 app.use("/api/user", UserRouter);
 app.use("/api/db", DBOperationRouter);
