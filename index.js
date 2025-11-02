@@ -11,6 +11,7 @@ import DBOperationRouter from "./routes/operations.js";
 import CreateRouter from "./routes/create.js";
 import ReadRouter from "./routes/read.js";
 import UpdateRouter from "./routes/update.js";
+import DeleteRouter from "./routes/delete.js";
 
 //middleware
 import handleCheckIfLoggedIn from "./middleware/auth.js";
@@ -37,7 +38,8 @@ app.use("/api/user", UserRouter);
 app.use("/api/db", DBOperationRouter);
 app.use("/api/create", CreateRouter);
 app.use("/api/read", ReadRouter);
-app.use("/api/update",UpdateRouter);
+app.use("/api/update", UpdateRouter);
+app.use("/api/delete", DeleteRouter)
 
 
 app.get("/", (req, res) => {

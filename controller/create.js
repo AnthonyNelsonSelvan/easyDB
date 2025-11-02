@@ -5,7 +5,8 @@ async function createOneRecord(req, res) {
     try {
         const dbName = `${req.params.dbName}_${req.user.id}`;
         const collectionName = req.params.collectionName;
-        const document = req.body;
+        const document = req.body.document;
+        const option = req.body.option;
 
         if (typeof document !== 'object' || document === null) {
             return res.status(400).json({ message: "Request body must be a valid document object." });
@@ -25,7 +26,7 @@ async function createOneRecord(req, res) {
 
         const db = req.mongoClient.db(dbName);
         const collection = db.collection(collectionName);
-        const result = await collection.insertOne(finalDoc);
+        const result = await collection.insertOne(finalDoc,option)
 
         res.status(201).json({
             acknowledged: result.acknowledged,

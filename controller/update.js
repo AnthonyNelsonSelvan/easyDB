@@ -7,6 +7,7 @@ async function updateOne(req, res) {
         const collectionName = req.params.collectionName;
         let updateQuery = req.body.updateQuery;
         let update = req.body.update;
+        let option = req.body.option;
 
         if (typeof updateQuery !== 'object' || updateQuery === null) {
             return res.status(400).json({ message: "Request body must be a valid update query." });
@@ -35,7 +36,7 @@ async function updateOne(req, res) {
 
         const db = req.mongoClient.db(dbName);
         const collection = db.collection(collectionName);
-        const result = await collection.updateOne(updateQuery, finalUpdate);
+        const result = await collection.updateOne(updateQuery, finalUpdate,option);
 
         if (result.matchedCount === 0) {
             return res.status(404).json({ message: "No document found matching query" });
