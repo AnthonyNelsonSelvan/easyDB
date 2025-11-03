@@ -1,4 +1,5 @@
 import validateDbandCol from "../utils/validateQuery.js";
+import gotDbAndCol from "../utils/dbAndCol.js";
 
 async function readOneRecord(req, res) {
     try {
@@ -10,20 +11,19 @@ async function readOneRecord(req, res) {
         if (typeof query !== 'object' || query === null) {
             return res.status(400).json({ message: "Request body must be a valid document object." });
         }
-        if (!req.mongoClient) throw new Error("Database client not found in request");
-        if (!dbName) return res.status(400).json({ message: "dbName parameter required" });
-        if (!collectionName) return res.status(400).json({ message: "collectionName parameter required" });
+        const dbAndCol = gotDbAndCol(dbName, collectionName);
+        if (!dbAndCol.valid) return res.status(400).json({ message: dbAndCol.message });
 
         //needs caching right here
-        const colWithSchema = await validateDbandCol(dbName,collectionName);
-        if(!colWithSchema.valid){
-            return res.status(404).json({message : colWithSchema.message})
+        const colWithSchema = await validateDbandCol(dbName, collectionName);
+        if (!colWithSchema.valid) {
+            return res.status(404).json({ message: colWithSchema.message })
         }
         //till here (caching) will apply soon
 
         const db = req.mongoClient.db(dbName);
         const collection = db.collection(collectionName);
-        const result = await collection.findOne(query,option);
+        const result = await collection.findOne(query, option);
 
         if (!result) {
             return res.status(404).json({ message: "No document found matching query" });
@@ -49,20 +49,19 @@ async function readManyRecord(req, res) {
         if (typeof query !== 'object' || query === null) {
             return res.status(400).json({ message: "Request body must be a valid document object." });
         }
-        if (!req.mongoClient) throw new Error("Database client not found in request");
-        if (!dbName) return res.status(400).json({ message: "dbName parameter required" });
-        if (!collectionName) return res.status(400).json({ message: "collectionName parameter required" });
+        const dbAndCol = gotDbAndCol(dbName, collectionName);
+        if (!dbAndCol.valid) return res.status(400).json({ message: dbAndCol.message });
 
         //needs caching right here
-        const colWithSchema = await validateDbandCol(dbName,collectionName);
-        if(!colWithSchema.valid){
-            return res.status(404).json({message : colWithSchema.message})
+        const colWithSchema = await validateDbandCol(dbName, collectionName);
+        if (!colWithSchema.valid) {
+            return res.status(404).json({ message: colWithSchema.message })
         }
         //till here (caching) will apply soon
 
         const db = req.mongoClient.db(dbName);
         const collection = db.collection(collectionName);
-        const result = await collection.find(query,options).toArray();
+        const result = await collection.find(query, options).toArray();
 
         if (result.length === 0) {
             return res.status(404).json({ message: "No document found matching query" });
@@ -78,4 +77,4 @@ async function readManyRecord(req, res) {
     }
 }
 
-export {readOneRecord,readManyRecord};
+export { readOneRecord, readManyRecord };

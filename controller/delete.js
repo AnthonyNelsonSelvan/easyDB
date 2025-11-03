@@ -1,4 +1,5 @@
 import validateDbandCol from "../utils/validateQuery.js";
+import gotDbAndCol from "../utils/dbAndCol.js";
 
 async function deleteOne(req, res) {
     try {
@@ -10,9 +11,8 @@ async function deleteOne(req, res) {
         if (typeof query !== 'object' || query === null) {
             return res.status(400).json({ message: "Request body must be a valid document object." });
         }
-        if (!req.mongoClient) throw new Error("Database client not found in request");
-        if (!dbName) return res.status(400).json({ message: "dbName parameter required" });
-        if (!collectionName) return res.status(400).json({ message: "collectionName parameter required" });
+        const dbAndCol = gotDbAndCol(dbName, collectionName);
+        if (!dbAndCol.valid) return res.status(400).json({ message: dbAndCol.message });
 
         //needs caching right here
         const colWithSchema = await validateDbandCol(dbName, collectionName);
@@ -48,9 +48,8 @@ async function deleteMany(req, res) {
         if (Object.keys(query).length === 0) {
             return res.status(400).json({ message: "Query cannot be empty for deleteMany." });
         }
-        if (!req.mongoClient) throw new Error("Database client not found in request");
-        if (!dbName) return res.status(400).json({ message: "dbName parameter required" });
-        if (!collectionName) return res.status(400).json({ message: "collectionName parameter required" });
+        const dbAndCol = gotDbAndCol(dbName, collectionName);
+        if (!dbAndCol.valid) return res.status(400).json({ message: dbAndCol.message });
 
         //needs caching right here
         const colWithSchema = await validateDbandCol(dbName, collectionName);

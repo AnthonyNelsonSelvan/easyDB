@@ -1,4 +1,5 @@
 import { hashFields, hashFieldsForMany } from "../auth/hash.js";
+import gotDbAndCol from "../utils/dbAndCol.js";
 import validateDbandCol from "../utils/validateQuery.js";
 
 async function createOneRecord(req, res) {
@@ -11,14 +12,14 @@ async function createOneRecord(req, res) {
         if (typeof document !== 'object' || document === null) {
             return res.status(400).json({ message: "Request body must be a valid document object." });
         }
-        if (!req.mongoClient) throw new Error("Database client not found in request");
-        if (!dbName) return res.status(400).json({ message: "dbName parameter required" });
-        if (!collectionName) return res.status(400).json({ message: "collectionName parameter required" });
+        
+        const dbAndCol = gotDbAndCol(dbName, collectionName);
+        if (!dbAndCol.valid) return res.status(400).json({ message: dbAndCol.message });
 
         //needs caching right here
-        const colWithSchema = await validateDbandCol(dbName,collectionName);
-        if(!colWithSchema.valid){
-            return res.status(404).json({message : colWithSchema.message})
+        const colWithSchema = await validateDbandCol(dbName, collectionName);
+        if (!colWithSchema.valid) {
+            return res.status(404).json({ message: colWithSchema.message })
         }
         //till here (caching) will apply soon
 
@@ -26,7 +27,7 @@ async function createOneRecord(req, res) {
 
         const db = req.mongoClient.db(dbName);
         const collection = db.collection(collectionName);
-        const result = await collection.insertOne(finalDoc,option)
+        const result = await collection.insertOne(finalDoc, option)
 
         res.status(201).json({
             acknowledged: result.acknowledged,
@@ -60,14 +61,14 @@ async function createManyRecords(req, res) {
         if (typeof documents !== 'object' || documents === null) {
             return res.status(400).json({ message: "Request body must be a valid document object." });
         }
-        if (!req.mongoClient) throw new Error("Database client not found in request");
-        if (!dbName) return res.status(400).json({ message: "dbName parameter required" });
-        if (!collectionName) return res.status(400).json({ message: "collectionName parameter required" });
+
+        const dbAndCol = gotDbAndCol(dbName, collectionName);
+        if (!dbAndCol.valid) return res.status(400).json({ message: dbAndCol.message });
 
         //needs caching right here
-        const colWithSchema = await validateDbandCol(dbName,collectionName);
-        if(!colWithSchema.valid){
-            return res.status(404).json({message : colWithSchema.message})
+        const colWithSchema = await validateDbandCol(dbName, collectionName);
+        if (!colWithSchema.valid) {
+            return res.status(404).json({ message: colWithSchema.message })
         }
         //till here (caching) will apply soon (same in every place)
 

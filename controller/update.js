@@ -1,5 +1,6 @@
 import { hashFieldOnUpdate } from "../auth/hash.js";
 import validateDbandCol from "../utils/validateQuery.js";
+import gotDbAndCol from "../utils/dbAndCol.js";
 
 async function updateOne(req, res) {
     try {
@@ -21,14 +22,13 @@ async function updateOne(req, res) {
             update = { $set: update };
         }
 
-        if (!req.mongoClient) throw new Error("Database client not found in request");
-        if (!dbName) return res.status(400).json({ message: "dbName parameter required" });
-        if (!collectionName) return res.status(400).json({ message: "collectionName parameter required" });
+        const dbAndCol = gotDbAndCol(dbName, collectionName);
+        if (!dbAndCol.valid) return res.status(400).json({ message: dbAndCol.message });
 
         //needs caching right here
-        const colWithSchema = await validateDbandCol(dbName,collectionName);
-        if(!colWithSchema.valid){
-            return res.status(404).json({message : colWithSchema.message})
+        const colWithSchema = await validateDbandCol(dbName, collectionName);
+        if (!colWithSchema.valid) {
+            return res.status(404).json({ message: colWithSchema.message })
         }
         //till here (caching) will apply soon
 
@@ -36,7 +36,7 @@ async function updateOne(req, res) {
 
         const db = req.mongoClient.db(dbName);
         const collection = db.collection(collectionName);
-        const result = await collection.updateOne(updateQuery, finalUpdate,option);
+        const result = await collection.updateOne(updateQuery, finalUpdate, option);
 
         if (result.matchedCount === 0) {
             return res.status(404).json({ message: "No document found matching query" });
@@ -47,7 +47,7 @@ async function updateOne(req, res) {
             data: result
         });
     } catch (error) {
-         if (error.code === 11000) {
+        if (error.code === 11000) {
             return res.status(409).json({ message: "Duplicate key error: You cannot update it will lead to Duplicate entry" });
         }
 
@@ -79,14 +79,13 @@ async function updateMany(req, res) {
             update = { $set: update };
         }
 
-        if (!req.mongoClient) throw new Error("Database client not found in request");
-        if (!dbName) return res.status(400).json({ message: "dbName parameter required" });
-        if (!collectionName) return res.status(400).json({ message: "collectionName parameter required" });
-
+        const dbAndCol = gotDbAndCol(dbName, collectionName);
+        if (!dbAndCol.valid) return res.status(400).json({ message: dbAndCol.message });
+        
         //needs caching right here
-        const colWithSchema = await validateDbandCol(dbName,collectionName);
-        if(!colWithSchema.valid){
-            return res.status(404).json({message : colWithSchema.message})
+        const colWithSchema = await validateDbandCol(dbName, collectionName);
+        if (!colWithSchema.valid) {
+            return res.status(404).json({ message: colWithSchema.message })
         }
         //till here (caching) will apply soon
 
@@ -105,7 +104,7 @@ async function updateMany(req, res) {
             data: result
         });
     } catch (error) {
-         if (error.code === 11000) {
+        if (error.code === 11000) {
             return res.status(409).json({ message: "Duplicate key error: You cannot update it will lead to Duplicate entry." });
         }
 
@@ -117,4 +116,4 @@ async function updateMany(req, res) {
     }
 }
 
-export { updateOne,updateMany };
+export { updateOne, updateMany };
