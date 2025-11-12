@@ -1,5 +1,15 @@
 import express from "express";
 import cookieParser from "cookie-parser";
+import cors from "cors";
+
+const app = express();
+
+
+app.use(cors({
+    origin: "http://localhost:3000",
+    methods: ["GET", "POST"],
+    credentials: true
+}))
 
 //db connections
 import handleConnectoMainServer from "./connections/mongo.js";
@@ -17,7 +27,6 @@ import ReadRouter from "./routes/read.js";
 import UpdateRouter from "./routes/update.js";
 import DeleteRouter from "./routes/delete.js";
 
-const app = express();
 const MONGO_URL = 'mongodb://localhost:27018/data-main';//main server url
 
 app.use(express.urlencoded({ extended: true }));
@@ -42,7 +51,7 @@ app.get("/", (req, res) => {
 
 await connectToMongo().then(() => {
     handleConnectoMainServer(MONGO_URL);
-    app.listen(3000, () => {
+    app.listen(5000, () => {
         console.log("Server listening at port 3000");
     });
 }).catch((err) => {

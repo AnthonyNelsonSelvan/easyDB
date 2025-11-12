@@ -35,7 +35,7 @@ async function handleLogin(req, res) {
         }
         const token = handleSignToken(user);
         handleSetCookie(res, token);
-        return res.status(200).json({ message: "You are logged In. Welcome Back." })
+        return res.status(200).json({ message: "You are logged In." })
     } catch (error) {
         console.log("Error while logging in : ", error);
         res.status(500).json({ message: "Unexpected Error Occured while login" })

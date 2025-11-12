@@ -4,7 +4,8 @@ import gotDbAndCol from "../utils/dbAndCol.js";
 
 async function updateOne(req, res) {
     try {
-        const dbName = `${req.params.dbName}_${req.user.id}`;
+        const _id = req.params._id;
+        const dbName = `${req.params.dbName}_${_id}`;
         const collectionName = req.params.collectionName;
         let updateQuery = req.body.updateQuery;
         let update = req.body.update;
@@ -61,7 +62,8 @@ async function updateOne(req, res) {
 
 async function updateMany(req, res) {
     try {
-        const dbName = `${req.params.dbName}_${req.user.id}`;
+        const _id = req.params._id;
+        const dbName = `${req.params.dbName}_${_id}`;
         const collectionName = req.params.collectionName;
         let updateQuery = req.body.updateQuery;
         let update = req.body.update;

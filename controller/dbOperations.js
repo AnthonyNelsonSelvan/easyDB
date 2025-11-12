@@ -13,7 +13,7 @@ async function handleCreateDB(req, res) {
         if (validDBName) {
             return res.status(409).json({ message: "DB name already exists." });
         }
-        const duh = await DB.create({ dbName: `${dbName}_${req.user?.id}`, userId: req.user?.id });
+        const duh = await DB.create({ dbName: `${dbName}_${req.user.id}`, userId: req.user.id });
         console.log(duh.dbName);
         return res.status(201).json({ message: "DB created Successfully" });
     } catch (err) {
@@ -32,7 +32,7 @@ async function handleCollectionCreation(req, res) {//check for valid collection 
     if (!dbName) return res.status(400).json({ message: 'dbName required' });
     if (!collectionName) return res.status(400).json({ message: 'collectionName required' });
     try {
-        const dbInfo = await DB.findOne({ dbName: `${dbName}_${req.user?.id}` });
+        const dbInfo = await DB.findOne({ dbName: `${dbName}_${req.user.id}` });
         if (!dbInfo) {
             return res.status(404).json({ message: "No such DB found." });
         }
@@ -63,7 +63,7 @@ async function handleSchemaCreation(req, res) {
     if (!collectionName) return res.status(400).json({ error: 'collectionName parameter required' });
     if (!dbName) return res.status(400).json({ error: 'dbName required' });
 
-    const fulldbName = `${dbName}_${req.user?.id}`
+    const fulldbName = `${dbName}_${req.user.id}`
 
     try {
         const dbInfo = await DB.findOne({ dbName: fulldbName });

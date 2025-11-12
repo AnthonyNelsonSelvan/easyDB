@@ -3,7 +3,8 @@ import gotDbAndCol from "../utils/dbAndCol.js";
 
 async function deleteOne(req, res) {
     try {
-        const dbName = `${req.params.dbName}_${req.user.id}`;
+        const _id = req.params._id;
+        const dbName = `${req.params.dbName}_${_id}`;
         const collectionName = req.params.collectionName;
         const query = req.body.query;
         const option = req.body.option || {};
@@ -37,7 +38,8 @@ async function deleteOne(req, res) {
 
 async function deleteMany(req, res) {
     try {
-        const dbName = `${req.params.dbName}_${req.user.id}`;
+        const _id = req.params._id;
+        const dbName = `${req.params.dbName}_${_id}`;
         const collectionName = req.params.collectionName;
         const query = req.body.query;
         const option = req.body.option || {};

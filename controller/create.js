@@ -4,7 +4,8 @@ import validateDbandCol from "../utils/validateQuery.js";
 
 async function createOneRecord(req, res) {
     try {
-        const dbName = `${req.params.dbName}_${req.user.id}`;
+        const _id = req.params._id;
+        const dbName = `${req.params.dbName}_${_id}`;
         const collectionName = req.params.collectionName;
         const document = req.body.document;
         const option = req.body.option;
@@ -48,7 +49,8 @@ async function createOneRecord(req, res) {
 
 async function createManyRecords(req, res) {
     try {
-        const dbName = `${req.params.dbName}_${req.user.id}`;
+        const _id = req.params._id;
+        const dbName = `${req.params.dbName}_${_id}`;
         const collectionName = req.params.collectionName;
 
         const documents = req.body.documents;
